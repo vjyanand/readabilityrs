@@ -28,6 +28,10 @@ pub enum ReadabilityError {
     #[error("Maximum element limit exceeded: {0}")]
     MaxElementsExceeded(usize),
 
+    /// No article content could be extracted
+    #[error("No article content found in document")]
+    NoContentFound,
+
     /// General error
     #[error("Readability error: {0}")]
     Other(String),
