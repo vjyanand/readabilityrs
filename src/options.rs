@@ -1,35 +1,148 @@
 //! Configuration options for Readability parsing.
+//!
+//! This module provides [`ReadabilityOptions`] and [`ReadabilityOptionsBuilder`]
+//! for configuring the behavior of the content extraction algorithm.
+//!
+//! ## Example
+//!
+//! ```rust
+//! use readabilityrs::{Readability, ReadabilityOptions};
+//!
+//! let html = "<html><body><article><p>Content...</p></article></body></html>";
+//!
+//! // Using default options
+//! let readability = Readability::new(html, None, None).unwrap();
+//!
+//! // Using builder for custom options
+//! let options = ReadabilityOptions::builder()
+//!     .char_threshold(300)
+//!     .nb_top_candidates(10)
+//!     .keep_classes(true)
+//!     .build();
+//!
+//! let readability = Readability::new(html, None, Some(options)).unwrap();
+//! ```
 
 use regex::Regex;
 
-/// Configuration options for the Readability parser
+/// Configuration options for the Readability parser.
+///
+/// Controls various aspects of the content extraction algorithm, including scoring
+/// thresholds, element limits, and metadata extraction behavior.
+///
+/// ## Creating Options
+///
+/// ### Using Default
+///
+/// ```rust
+/// use readabilityrs::ReadabilityOptions;
+///
+/// let options = ReadabilityOptions::default();
+/// ```
+///
+/// ### Using Builder
+///
+/// ```rust
+/// use readabilityrs::ReadabilityOptions;
+///
+/// let options = ReadabilityOptions::builder()
+///     .char_threshold(300)
+///     .nb_top_candidates(10)
+///     .debug(true)
+///     .build();
+/// ```
+///
+/// ## Field Descriptions
+///
+/// See individual field documentation for details on what each option controls.
 #[derive(Debug, Clone)]
 pub struct ReadabilityOptions {
-    /// Enable debug logging (default: false)
+    /// Enable debug logging to stderr.
+    ///
+    /// When enabled, the parser will output diagnostic messages to stderr
+    /// during extraction. Useful for understanding why extraction failed
+    /// or for debugging extraction behavior.
+    ///
+    /// Default: `false`
     pub debug: bool,
 
-    /// Maximum number of elements to parse. 0 means no limit (default: 0)
+    /// Maximum number of elements to parse.
+    ///
+    /// This is a safety limit to prevent processing extremely large documents
+    /// that could consume excessive memory or CPU time. Set to 0 to disable
+    /// the limit.
+    ///
+    /// Default: `0` (no limit)
     pub max_elems_to_parse: usize,
 
-    /// Number of top candidates to consider when analyzing content (default: 5)
+    /// Number of top candidates to consider when analyzing content.
+    ///
+    /// The parser scores all potential article containers and considers this many
+    /// of the highest-scoring candidates. Higher values increase accuracy but may
+    /// also increase processing time.
+    ///
+    /// Default: `5`
     pub nb_top_candidates: usize,
 
-    /// Minimum number of characters required for article content (default: 500)
+    /// Minimum number of characters required for article content.
+    ///
+    /// If extracted content has fewer characters than this threshold, the parser
+    /// will try alternative extraction strategies. Lower values make extraction
+    /// more permissive but may capture non-article content.
+    ///
+    /// Default: `500`
     pub char_threshold: usize,
 
-    /// CSS classes to preserve during cleaning (default: ["page"])
+    /// CSS classes to preserve during cleaning.
+    ///
+    /// By default, the parser removes most CSS classes during cleaning. Classes
+    /// in this list will be preserved in the output HTML.
+    ///
+    /// Default: `vec!["page"]`
     pub classes_to_preserve: Vec<String>,
 
-    /// Keep all CSS classes (default: false)
+    /// Keep all CSS classes in the output HTML.
+    ///
+    /// When `true`, preserves all CSS classes instead of removing them.
+    /// This can be useful if you need to apply custom styling to the output.
+    ///
+    /// Default: `false`
     pub keep_classes: bool,
 
-    /// Disable JSON-LD metadata extraction (default: false)
+    /// Disable JSON-LD metadata extraction.
+    ///
+    /// When `true`, skips parsing of JSON-LD structured data, which can
+    /// improve performance if you don't need metadata like author, publish date, etc.
+    ///
+    /// Default: `false`
     pub disable_json_ld: bool,
 
-    /// Custom regex for allowed video URLs (default: common video platforms)
+    /// Custom regex for allowed video URLs.
+    ///
+    /// Override the default video platform detection with a custom regex.
+    /// By default, the parser recognizes common platforms like YouTube, Vimeo, etc.
+    ///
+    /// Default: `None` (uses built-in regex)
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// use readabilityrs::ReadabilityOptions;
+    /// use regex::Regex;
+    ///
+    /// let video_regex = Regex::new(r"(?i)myvideoplatform\.com").unwrap();
+    /// let options = ReadabilityOptions::builder()
+    ///     .allowed_video_regex(video_regex)
+    ///     .build();
+    /// ```
     pub allowed_video_regex: Option<Regex>,
 
-    /// Modifier for link density scoring (default: 0)
+    /// Modifier for link density scoring.
+    ///
+    /// Adjusts how heavily link density affects content scoring. Positive values
+    /// make the algorithm more tolerant of links, negative values less tolerant.
+    ///
+    /// Default: `0.0`
     pub link_density_modifier: f64,
 }
 
@@ -56,7 +169,22 @@ impl ReadabilityOptions {
     }
 }
 
-/// Builder for ReadabilityOptions
+/// Builder for [`ReadabilityOptions`].
+///
+/// Provides a fluent interface for constructing [`ReadabilityOptions`] with custom values.
+///
+/// ## Example
+///
+/// ```rust
+/// use readabilityrs::ReadabilityOptions;
+///
+/// let options = ReadabilityOptions::builder()
+///     .char_threshold(300)
+///     .nb_top_candidates(10)
+///     .debug(true)
+///     .keep_classes(true)
+///     .build();
+/// ```
 #[derive(Default)]
 pub struct ReadabilityOptionsBuilder {
     debug: Option<bool>,

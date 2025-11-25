@@ -1,4 +1,30 @@
 //! Main Readability struct and parse implementation.
+//!
+//! This module contains the primary [`Readability`] struct which orchestrates
+//! the entire article extraction pipeline.
+//!
+//! ## Example
+//!
+//! ```rust,no_run
+//! use readabilityrs::{Readability, ReadabilityOptions};
+//!
+//! let html = std::fs::read_to_string("article.html").unwrap();
+//! let url = "https://example.com/article";
+//!
+//! let readability = Readability::new(&html, Some(url), None)?;
+//!
+//! if let Some(article) = readability.parse() {
+//!     println!("Title: {:?}", article.title);
+//!     println!("Author: {:?}", article.byline);
+//!     println!("Content length: {} chars", article.length);
+//!
+//!     // Save to file
+//!     if let Some(content) = article.content {
+//!         std::fs::write("output.html", content)?;
+//!     }
+//! }
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
 
 use crate::{
     article::Article,
@@ -12,7 +38,69 @@ use crate::{
 };
 use scraper::{ElementRef, Html, Selector};
 
-/// The main Readability parser
+/// The main Readability parser.
+///
+/// This struct is the primary interface for extracting article content from HTML documents.
+/// It implements Mozilla's Readability algorithm, which powers Firefox's Reader View.
+///
+/// ## Lifecycle
+///
+/// The typical usage pattern starts by constructing a `Readability` instance with
+/// [`Readability::new()`], then calling [`parse()`](Readability::parse) to extract the content.
+/// The result is an [`Article`] containing the extracted content and metadata.
+///
+/// ## Features
+///
+/// - Intelligent content identification
+/// - Metadata extraction (title, author, date, etc.)
+/// - JSON-LD structured data parsing
+/// - Multiple retry strategies for difficult pages
+/// - Configurable thresholds and behavior
+///
+/// ## Example
+///
+/// ```rust,no_run
+/// use readabilityrs::{Readability, ReadabilityOptions};
+///
+/// let html = r#"
+///     <html>
+///     <head><title>Article Title</title></head>
+///     <body>
+///         <article>
+///             <h1>Article Title</h1>
+///             <p>First paragraph of content...</p>
+///             <p>Second paragraph of content...</p>
+///         </article>
+///     </body>
+///     </html>
+/// "#;
+///
+/// let readability = Readability::new(html, None, None)?;
+/// let article = readability.parse();
+///
+/// if let Some(article) = article {
+///     println!("Success! Extracted {} characters", article.length);
+/// } else {
+///     println!("Could not extract article content");
+/// }
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
+///
+/// ## With Custom Options
+///
+/// ```rust,no_run
+/// use readabilityrs::{Readability, ReadabilityOptions};
+///
+/// let html = "<html>...</html>";
+///
+/// let options = ReadabilityOptions::builder()
+///     .char_threshold(300)
+///     .debug(true)
+///     .build();
+///
+/// let readability = Readability::new(html, None, Some(options))?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub struct Readability {
     /// The HTML document being parsed (raw, for metadata extraction)
     document: Html,
@@ -70,7 +158,7 @@ impl Readability {
     /// Parse the document and extract article content
     ///
     /// # Returns
-    /// Option<Article> - Some(article) if successful, None if no article found
+    /// `Option<Article>` - Some(article) if successful, None if no article found
     pub fn parse(mut self) -> Option<Article> {
         let json_ld = if !self.options.disable_json_ld {
             get_json_ld(&self.document)
