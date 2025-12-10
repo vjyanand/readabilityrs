@@ -103,9 +103,9 @@ impl Default for ReaderableOptions {
 /// let article_html = r#"
 ///     <html><body>
 ///         <article>
-///             <p>This is a substantial paragraph with enough content to indicate
-///             that this page likely contains article text that can be extracted.</p>
-///             <p>Here's another paragraph with more content to increase the score.</p>
+///             <p>This is a substantial paragraph with enough content to indicate that this page
+///             likely contains article text that can be extracted by the readability algorithm.
+///             The paragraph needs to be long enough to pass the minimum content length threshold.</p>
 ///         </article>
 ///     </body></html>
 /// "#;
