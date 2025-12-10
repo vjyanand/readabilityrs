@@ -1638,7 +1638,7 @@ mod tests {
 
     #[test]
     fn test_breitbart_byline_is_extracted() {
-        let html = fs::read_to_string("readability/test/test-pages/breitbart/source.html").unwrap();
+        let html = fs::read_to_string("tests/test-pages/breitbart/source.html").unwrap();
         let document = Html::parse_document(&html);
         let selector = Selector::parse(".byline").unwrap();
         let mut saw_lucas = false;
@@ -1663,7 +1663,7 @@ mod tests {
 
     #[test]
     fn test_cnet_authorinfo_is_extracted() {
-        let html = fs::read_to_string("readability/test/test-pages/cnet/source.html").unwrap();
+        let html = fs::read_to_string("tests/test-pages/cnet/source.html").unwrap();
         let document = Html::parse_document(&html);
         let dom_byline = extract_byline_from_document(&document).map(|c| c.text);
         assert_eq!(dom_byline, Some("Steven Musil".to_string()));
@@ -1672,7 +1672,7 @@ mod tests {
     #[test]
     fn test_herald_sun_caps_byline_overrides_meta() {
         let html =
-            fs::read_to_string("readability/test/test-pages/herald-sun-1/source.html").unwrap();
+            fs::read_to_string("tests/test-pages/herald-sun-1/source.html").unwrap();
         let document = Html::parse_document(&html);
         let dom_byline = extract_byline_from_document(&document).expect("dom byline");
         assert_eq!(dom_byline.text, "JOE HILDEBRAND");
@@ -1736,7 +1736,7 @@ mod tests {
 
     #[test]
     fn test_wapo_byline_is_detected() {
-        let html = fs::read_to_string("readability/test/test-pages/wapo-1/source.html").unwrap();
+        let html = fs::read_to_string("tests/test-pages/wapo-1/source.html").unwrap();
         let document = Html::parse_document(&html);
         let selector = Selector::parse(".pb-byline").unwrap();
         assert!(

@@ -130,4 +130,4 @@ pub use article::Article;
 pub use error::{ReadabilityError, Result};
 pub use options::ReadabilityOptions;
 pub use readability::Readability;
-pub use readerable::is_probably_readerable;
+pub use readerable::{is_probably_readerable, ReaderableOptions};
